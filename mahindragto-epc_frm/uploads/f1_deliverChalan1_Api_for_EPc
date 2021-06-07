@@ -1,0 +1,56 @@
+Create Lead RequestBody
+
+i)FarmerInformation
+
+1) firstName
+2) lastName
+3) mobile
+4) emailId
+5) fathersName
+6) mothersName
+7) ASM Name
+8) Dealer Code
+9) Dealer Name
+10) status on online portal
+11) SAP farmer code
+12) Registration status on Govt portal
+13) Amount
+14) Attachment-file
+
+ii)Site survey
+
+15) Address1
+16) Address2
+17) village
+18) taluka
+19)district
+20) state
+21) pincode
+22) crops
+23) Area
+24) subsidy(%)
+25) Amount 
+26) Attachment -fIle
+27) MIS product
+28) enquiry type
+29) visit date
+
+iii) KYC
+
+30) farmer photo
+31) water test doc
+32) soil test doc
+33) Bank doc
+34) aadhar cord
+35) Ration card
+36) patta
+37) chitta
+38) survey capture image
+39) GPS capture Image
+40) other docs	
+
+
+
+  
+
+

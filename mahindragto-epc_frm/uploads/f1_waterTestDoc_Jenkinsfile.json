@@ -1,0 +1,158 @@
+pipeline
+ {
+	agent { label 'master' }
+	stages 
+	{
+		stage('Dev Test')
+		{
+			when {
+                branch 'dev'
+            }
+			parallel
+			{	 
+				stage('Dev: Unit Test')
+				{ 
+					agent { label 'cocpUATServer' }
+					steps
+					{
+						echo "Unit Test:Should we continue?"
+					}
+					//post {
+            			//success {
+               			//junit '**/target/surefire-reports/TEST-*.xml'
+               			//archiveArtifacts 'target/*.jar'
+            			//}
+         			//}
+				}
+				stage('Dev: Sonarqube Test')
+				{ 
+					agent { label 'master' }
+					tools {
+						maven 'apache-maven'
+						jdk 'java'
+					}
+					 steps
+					{
+					//echo "Sonarqube Test:Should we continue?"
+						script {
+							//def scannerHome = tool 'apache-maven';
+							//withSonarQubeEnv("SonarQube") {
+							sh "mvn sonar:sonar \
+  								-Dsonar.projectKey=cocp \
+  								-Dsonar.host.url=http://10.175.16.107:9000 \
+  								-Dsonar.login=7716fe46a9c4c3afde04e49e7a3d7b86300b7ac5"
+							//}
+						}
+					}
+				  
+				}
+			}
+		}	
+		stage('Deploy to UAT')
+		{
+			 when {
+                branch 'dev'
+            }
+			agent {label 'cocpUATServer'}
+			steps{
+				git branch: 'dev', changelog: false, credentialsId: '74368e27-13f0-4171-a663-2ef0a4da2f27', poll: false, url:'https://bitbucket.org/mahindragto/cocp.git'
+                bat "mvn clean install"
+			}
+			post {	
+				always {
+					junit '**/target/surefire-reports/TEST-*.xml'                   				
+				}
+				
+                success {
+                    archiveArtifacts 'target/*.war'	
+					bat 'rename C:\\Jenkins\\workspace\\COCP_dev\\target\\cocp-0.0.1-SNAPSHOT.war cocp-devops.war'
+                   	bat "copy C:\\Jenkins\\workspace\\COCP_dev\\target\\cocp-devops.war F:\\unionbudget\\wildfly9\\wildfly9\\standalone\\deployments /y"
+                    emailext body: "Success: ${env.BUILD_URL}",subject: "Success Pipeline: ${currentBuild.fullDisplayName}", to: 'kumar.utpalkant@mahindra.com,kastur.sadanand1@mahindra.com,dubey.ajay2@mahindra.com,cc:sarash-cont@mahindra.com'   
+                }
+				failure {
+                    emailext body: "Failed: ${env.BUILD_URL}",subject: "Failed Pipeline: ${currentBuild.fullDisplayName}", to: 'kumar.utpalkant@mahindra.com,kastur.sadanand1@mahindra.com,dubey.ajay2@mahindra.com,cc:sarash-cont@mahindra.com'   
+                }
+				
+            }
+			
+		}
+		stage('BVT')
+		{
+			 when {
+                branch 'dev'
+            }
+			agent { label 'master' }
+			tools {
+				maven 'apache-maven'
+				jdk 'java'
+			}
+			steps{
+				echo "BVT:Should we continue?"
+            }
+		} 
+		stage('QA Test')
+		{
+			when {
+                branch 'dev'
+            }
+			parallel
+			{	 
+				stage('QA: Sanity Testing')
+				{ 
+					agent { label 'master' }
+					tools {
+						maven 'apache-maven'
+						jdk 'java'
+					}
+					steps
+					{ 
+						echo "Sanity:Should we continue?"
+					}	
+				}
+				stage('QA: Defect Retesting')
+				{ 
+					steps{
+						echo 'Defect Retesting:Should we continue?'
+					}
+				}
+				stage('QA: Regression Testing')
+				{ 
+					agent { label 'master' }
+					tools {
+						maven 'apache-maven'
+						jdk 'java'
+					}
+					steps
+					{
+						echo 'Regression testing:Should we continue?'
+					}
+				}
+				stage('QA: Manual Testing')
+				{ 
+					steps{
+						echo 'Manual testing'
+					}
+				}				
+			}
+		} 
+		stage('Security Testing')
+		{
+			 when {
+                branch 'master'
+            }
+			agent { label 'master' }
+			steps{
+				echo 'Security Testing: Should we continue?'
+			}
+		}
+		stage('Deploy To Production')
+		{
+			when {
+                branch "master"
+            }
+			steps{
+				echo 'Deploy To Production: Should we continue?'
+			}
+		}
+	}
+}
